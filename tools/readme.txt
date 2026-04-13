@@ -1,0 +1,1 @@
+here are the python scripts if you wan't to try it with a real or virtual machine running MacOS High Sierra. you can also put the voicedescription and PCMwave files on to an Iphone running IOS 10 to 12 I haven't tested that since I don't own any Iphones running those versions of IOS. you'll also need ffmpeg for the PCM playback to work with pcm_new-2.py.
