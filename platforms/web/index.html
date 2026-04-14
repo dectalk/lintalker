@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WinTalker</title>
+</head>
+<body>
+<h1>WinTalker</h1>
+<textarea id="text" placeholder="Type something to speak…">Hello, I am WinTalker running in your browser.</textarea>
+<br>
+  <select id="voice">
+      <option value="0">Fred</option>
+      <option value="1">Kathy</option>
+      <option value="2">Princess</option>
+      <option value="3">Junior</option>
+      <option value="4">Ralph</option>
+      <option value="5">Whisper</option>
+      <option value="6">Zarvox</option>
+      <option value="7">Trinoids</option>
+      <option value="8">Bubbles</option>
+      <option value="9">Boing</option>
+      <option value="10">Bells</option>
+      <option value="11">Hysterical</option>
+      <option value="12">Deranged</option>
+      <option value="13">Good News</option>
+      <option value="14">Bad News</option>
+      <option value="15">Pipe Organ</option>
+      <option value="16">Cellos</option>
+    </select>
+  <button id="speak" disabled>Speak</button>
+<br>
+<span id="status">Loading engine…</span>
+
+<script src="wintalker.js"></script>
+<script>
+const status  = document.getElementById('status');
+const speakBtn = document.getElementById('speak');
+const voiceSel = document.getElementById('voice');
+const textArea = document.getElementById('text');
+
+const SAMPLE_RATE = 22050;
+let Module = null;
+let audioCtx = null;
+
+function setStatus(msg) {
+  status.textContent = msg;
+}
+
+WinTalker().then(m => {
+  Module = m;
+  const err = Module._wt_init();
+  if (err !== 0) {
+    setStatus('Engine init failed: ' + err);
+    return;
+  }
+  Module._wt_set_voice(0);
+  speakBtn.disabled = false;
+  setStatus('Ready');
+}).catch(e => {
+  setStatus('Failed to load WASM: ' + e);
+});
+
+voiceSel.addEventListener('change', () => {
+  if (Module) Module._wt_set_voice(parseInt(voiceSel.value));
+});
+
+speakBtn.addEventListener('click', () => {
+  const text = textArea.value.trim();
+  if (!text || !Module) return;
+
+  speakBtn.disabled = true;
+  setStatus('Synthesising…');
+
+  // Resume AudioContext on first user gesture
+  if (!audioCtx) audioCtx = new AudioContext({ sampleRate: SAMPLE_RATE });
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+
+  // Synthesis runs synchronously; use setTimeout so the UI repaints first
+  setTimeout(() => {
+    const encoded = new TextEncoder().encode(text);
+    const textPtr = Module._malloc(encoded.length + 1);
+    Module.HEAPU8.set(encoded, textPtr);
+    Module.HEAPU8[textPtr + encoded.length] = 0;
+
+    const err = Module._wt_speak(textPtr);
+    Module._free(textPtr);
+
+    if (err !== 0) {
+      setStatus('Synthesis error: ' + err);
+      speakBtn.disabled = false;
+      return;
+    }
+
+    const len = Module._wt_get_buffer_len();
+    const ptr = Module._wt_get_buffer();
+
+    if (len <= 0 || ptr === 0) {
+      setStatus('No audio produced');
+      speakBtn.disabled = false;
+      return;
+    }
+
+    // Copy samples out of WASM heap (Int16 → Float32)
+    const int16 = new Int16Array(Module.HEAP16.buffer, ptr, len);
+    const audioBuffer = audioCtx.createBuffer(1, len, SAMPLE_RATE);
+    const f32 = audioBuffer.getChannelData(0);
+    for (let i = 0; i < len; i++)
+      f32[i] = int16[i] / 32768.0;
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioCtx.destination);
+    source.onended = () => {
+      speakBtn.disabled = false;
+      setStatus('Ready');
+    };
+    source.start();
+    setStatus('Playing…');
+  }, 0);
+});
+</script>
+</body>
+</html>

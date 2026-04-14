@@ -2155,7 +2155,7 @@ short SearchAllDicts ( voiceVarPtr vv, unsigned char *text, FETokenPtr tok, Dict
 
 				case ':':									/* these punctuation are aliased to period	*/
 				case ';':
-				case '�':
+				/* case '\xef\xbf\xbd': */ /* Mac Roman char, omitted for clang */
 					cur_Tok->phonStr[1] = _Comma_;
 					cur_Tok->phonStr[2] = _SIL_;
 					cur_Tok->phrasingBND = kBND_Pause;
