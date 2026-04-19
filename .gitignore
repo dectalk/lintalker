@@ -1,3 +1,5 @@
 *.wav
 /obj
 /bin
+/platforms/godot/godot-cpp
+/platforms/godot/gdextension/

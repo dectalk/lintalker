@@ -1,0 +1,12 @@
+[configuration]
+entry_symbol = "lintalker_library_init"
+compatibility_minimum = "4.1"
+reloadable = true
+
+[libraries]
+linux.debug.x86_64   = "res://addons/lintalker/bin/liblintalker.linux.template_debug.x86_64"
+linux.release.x86_64 = "res://addons/lintalker/bin/liblintalker.linux.template_release.x86_64"
+windows.debug.x86_64   = "res://addons/lintalker/bin/liblintalker.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/lintalker/bin/liblintalker.windows.template_release.x86_64.dll"
+macos.debug   = "res://addons/lintalker/bin/liblintalker.macos.template_debug.framework"
+macos.release = "res://addons/lintalker/bin/liblintalker.macos.template_release.framework"

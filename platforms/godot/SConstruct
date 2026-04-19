@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+# SConstruct – Lintalker GDExtension for Godot 4.x
+#
+# Usage:
+#   scons                        # debug build for host platform
+#   scons target=template_release
+#   scons platform=windows       # cross-compile (requires mingw-w64)
+
+import os
+
+# Don't link libgcc/libstdc++ statically — the static archives may not be
+# installed and dynamic linking is fine for a GDExtension (.so).
+ARGUMENTS.setdefault("use_static_cpp", "no")
+
+# Build godot-cpp
+env = SConscript("godot-cpp/SConstruct")
+
+# ------------------------------------------------------------------ #
+# Engine root (two levels up from this file)                          #
+# ------------------------------------------------------------------ #
+engine_root = "../.."
+
+# ------------------------------------------------------------------ #
+# C engine sources (identical set to the Linux premake build, minus   #
+# main.c / Linux.c – replaced by GodotPlatform.c below)              #
+# ------------------------------------------------------------------ #
+engine_sources = [
+    f"{engine_root}/src/Engine.c",
+    f"{engine_root}/src/BackEnd.c",
+    f"{engine_root}/src/FrontEnd.c",
+    f"{engine_root}/src/formantSynth.c",
+    f"{engine_root}/src/Say.c",
+    f"{engine_root}/src/Morph.c",
+    f"{engine_root}/src/EngToP.c",
+    f"{engine_root}/src/EmbeddedCmd.c",
+    f"{engine_root}/src/Singing.c",
+    f"{engine_root}/src/Data.c",
+    f"{engine_root}/src/Sounds.c",
+    f"{engine_root}/src/english_lex.c",
+    # Linux.c compiled with NO_FILESYSTEM so it uses built-in dictionary
+    f"{engine_root}/src/Linux.c",
+]
+
+# GDExtension platform layer + C++ bindings
+ext_sources = [
+    "src/GodotPlatform.c",
+    "src/LintalkerVoice.cpp",
+    "src/LintalkerSynth.cpp",
+    "src/register_types.cpp",
+]
+
+# ------------------------------------------------------------------ #
+# Build flags                                                         #
+# ------------------------------------------------------------------ #
+env.Append(CPPPATH=[f"{engine_root}/include"])
+env.Append(CPPDEFINES=["NO_FILESYSTEM"])   # use built-in dictionary
+env.Append(CCFLAGS=["-Wall", "-Wno-unused-function"])
+
+# C files only: suppress C++-specific warnings
+env_c = env.Clone()
+env_c.Append(CCFLAGS=["-Wno-missing-field-initializers"])
+
+# ------------------------------------------------------------------ #
+# Build shared library                                                #
+# ------------------------------------------------------------------ #
+target_name = "lintalker"
+
+# Compile C engine sources with the C env clone
+objs  = [env_c.SharedObject(src) for src in engine_sources]
+# Compile C++ extension sources
+objs += [env.SharedObject(src) for src in ext_sources]
+
+# Determine output path and filename using godot-cpp convention
+suffix = env["suffix"]
+# Ensure the GCC lib directory is on the linker path (needed on some
+# distributions where libstdc++.so lives under the GCC toolchain dir
+# rather than /usr/lib64).
+import subprocess, sys
+try:
+    gcc_libdir = subprocess.check_output(
+        ["g++", "-print-file-name=libstdc++.so"],
+        text=True).strip()
+    import os as _os
+    gcc_libdir = _os.path.dirname(gcc_libdir)
+    env.Append(LIBPATH=[gcc_libdir])
+except Exception:
+    pass
+
+lib = env.SharedLibrary(
+    f"gdextension/bin/lib{target_name}{suffix}",
+    source=objs,
+    LIBS=env.get("LIBS", []) + ["m"],
+)
+
+Default(lib)
