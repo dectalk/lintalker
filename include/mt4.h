@@ -1307,6 +1307,8 @@ struct voiceVar
 	short			starting_New_Phon;
 	short			ctrlCount;
 	short			singing;
+	short			hzGlide;			/* true while a note>37 Hz-glide phoneme is active */
+	short			musicalNoteActive;	/* true once a note<=37 has been set; carries fwd to noteless phonemes */
 	short			pendingSingPhoneme;
 	unsigned int	pendingSingDuration;
 	unsigned int	pendingSingNote;

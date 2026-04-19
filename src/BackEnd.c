@@ -223,6 +223,12 @@ void DoNote (voiceVarPtr vv)
 {
 	short		note;
 
+	vv->hzGlide = 0;	/* clear each phoneme; set below only for note>37 */
+
+	/* If this phoneme is outside a singing block, musical note context ends */
+	if (!(vv->phon_Ctrl_Buf_2[vv->cur_PhonBuf_Index_CF] & kSingingDuration))
+		vv->musicalNoteActive = 0;
+
 	if ( ((note = vv->user_Note_Buf2[vv->cur_PhonBuf_Index_CF]) != 0) &&		/* if pitch is entered...	*/
 		 !(vv->phon_Ctrl_Buf_2[vv->cur_PhonBuf_Index_CF] & kSilenceDuration) )	/* ...and it's NOT silence embedded cmd */
 		{
@@ -233,7 +239,8 @@ void DoNote (voiceVarPtr vv)
 				/* note > 37: raw Hz glide — linearly interpolate from current
 				 * pitch to target over the phoneme's duration (DECtalk
 				 * PHONE_TARGETS_SPECIFIED behaviour).  portamentoStep != 0
-				 * selects the existing linear-ramp path in Interpolate_Pitch. */
+				 * selects the existing linear-ramp path in Interpolate_Pitch.
+				 * Vibrato is suppressed for Hz-glide phonemes (DECtalk behaviour). */
 				short targetPitch = e_HzToPitch(vv, (short)-note);
 				short curPitch    = (short)(vv->portamentoAccum >> 16);
 				short frames      = vv->dur_Buf[vv->cur_PhonBuf_Index_CF];
@@ -241,6 +248,7 @@ void DoNote (voiceVarPtr vv)
 				vv->VP_baselinePitch = targetPitch;
 				vv->portamentoStep   = ((long)(targetPitch - curPitch) << 16) / frames;
 				vv->newPortaTarget   = true;
+				vv->hzGlide          = 1;
 				}
 			else
 				{
@@ -249,6 +257,7 @@ void DoNote (voiceVarPtr vv)
 				vv->VP_baselinePitch = note;
 				vv->portamentoStep = 0;
 				vv->newPortaTarget = true;
+				vv->musicalNoteActive = 1;	/* note established; noteless phonemes that follow inherit vibrato */
 				}
 			}
 		else
@@ -1273,10 +1282,13 @@ void	Interpolate_Pitch (voiceVarPtr vv)
 
 		vv->vibrato_Phase1 = (vv->vibratoFreq + vv->vibrato_Phase1) & 0xFFFFFF;
 		vibrato = ((unsigned char)(*(vv->SineWavePtr + (vv->vibrato_Phase1 >> 16)))) - 128;
-		if (vv->cur_PhonCtrl_CF & kLowVibrato)
-			vv->controlF0 += ((vibrato * vv->vibratoDepth2) >> 16);
-		else
-			vv->controlF0 += ((vibrato * vv->vibratoDepth1) >> 16);
+		if (!vv->hzGlide && vv->musicalNoteActive)	/* vibrato only when a musical note is active */
+			{
+			if (vv->cur_PhonCtrl_CF & kLowVibrato)
+				vv->controlF0 += ((vibrato * vv->vibratoDepth2) >> 16);
+			else
+				vv->controlF0 += ((vibrato * vv->vibratoDepth1) >> 16);
+			}
 		}
 
 	if (vv->controlF0 < 0)
@@ -4354,6 +4366,8 @@ void	ResetVoice (voiceVarPtr vv)
 	vv->pendingSingNote = 0;
 
 	vv->singing = false;
+	vv->hzGlide = 0;
+	vv->musicalNoteActive = 0;
 
 	vv->user_Volume = 256;				/* Volume = 100%	*/
 	(*(vv->funcList->synth_SetVolume_FUNC)) (vv, vv->user_Volume);
