@@ -228,12 +228,28 @@ void DoNote (voiceVarPtr vv)
 		{
 		if (vv->phon_Ctrl_Buf_2[vv->cur_PhonBuf_Index_CF] & kSingingDuration)
 			{
-			/* EC_sing: set new pitch target and let Interpolate_Pitch converge
-			 * using a first-order IIR (DECtalk-style: f0 += (target-f0) >> 2).
-			 * portamentoStep = 0 signals IIR mode to Interpolate_Pitch.        */
-			vv->VP_baselinePitch = note;
-			vv->portamentoStep = 0;
-			vv->newPortaTarget = true;
+			if (note < 0)
+				{
+				/* note > 37: raw Hz glide — linearly interpolate from current
+				 * pitch to target over the phoneme's duration (DECtalk
+				 * PHONE_TARGETS_SPECIFIED behaviour).  portamentoStep != 0
+				 * selects the existing linear-ramp path in Interpolate_Pitch. */
+				short targetPitch = e_HzToPitch(vv, (short)-note);
+				short curPitch    = (short)(vv->portamentoAccum >> 16);
+				short frames      = vv->dur_Buf[vv->cur_PhonBuf_Index_CF];
+				if (frames < 1) frames = 1;
+				vv->VP_baselinePitch = targetPitch;
+				vv->portamentoStep   = ((long)(targetPitch - curPitch) << 16) / frames;
+				vv->newPortaTarget   = true;
+				}
+			else
+				{
+				/* note <= 37: constant musical note — IIR convergence.
+				 * portamentoStep = 0 signals IIR mode to Interpolate_Pitch. */
+				vv->VP_baselinePitch = note;
+				vv->portamentoStep = 0;
+				vv->newPortaTarget = true;
+				}
 			}
 		else
 			{
@@ -781,7 +797,8 @@ void	StartNewPhon (voiceVarPtr vv)
 	if ( (vv->ctrlCount = vv->user_Cmd_Buf2[vv->cur_PhonBuf_Index_CF]) > 0)
 		DoCtrl (vv);
 
-	if (vv->sync_On_Marker)
+	if (vv->sync_On_Marker &&
+	    !(vv->phon_Ctrl_Buf_2[vv->cur_PhonBuf_Index_CF] & kSingingDuration))
 		{
 		if (vv->phon_Ctrl_Buf_2[vv->cur_PhonBuf_Index_CF] & kSampleMarker)
 			{
@@ -790,7 +807,7 @@ void	StartNewPhon (voiceVarPtr vv)
 				vv->markerIndex = 0;
 			}
 		}
-		
+
 	else
 		DoNote (vv);
 	
@@ -1944,7 +1961,7 @@ Duration_Done:
 
 		vv->dur_Buf[i] = dur_Hold;
 
-		if (vv->sync_On_Marker)
+		if (vv->sync_On_Marker && !(cur_PhonCtrl & kSingingDuration))
 			{
 
 			if ( (cur_PhonCtrl & kSyllable_Start) && (firstPass) )

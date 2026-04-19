@@ -273,8 +273,10 @@ void ParseSinging(voiceVarPtr vv, FETokenPtr tok)
 
 		if (duration > 0 || note > 0)
 			{
-			/* Emit EC_sing; stash phoneme for next call */
-			short pitch = DtalkNoteToInternalPitch(note);
+			/* Emit EC_sing; stash phoneme for next call.
+			 * note <= 37: musical note  → convert to internal pitch (IIR lock in DoNote)
+			 * note >  37: raw Hz target → store as negative short  (linear glide in DoNote) */
+			short pitch = (note > 37) ? -(short)note : DtalkNoteToInternalPitch(note);
 			tok->tokType    = kECommandTok;
 			tok->phonStr[0] = 0;
 			MyStuffBECommand(tok->phonStr, EC_sing,
