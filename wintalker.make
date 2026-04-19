@@ -46,8 +46,8 @@ ifeq ($(config),debug_x64)
 TARGETDIR = bin/Debug
 TARGET = $(TARGETDIR)/wintalker
 OBJDIR = obj/Debug
-DEFINES += -DPOWERPC_NATIVE_MT3=1 -D_LINUX -DDEBUG=1
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -g -std=c99 -Wall -Wno-unused-function
+DEFINES += -DDEBUG=1
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -g -Wall -Wno-unused-function
 ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O0 -g -Wall -Wno-unused-function
 ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64
 
@@ -55,9 +55,9 @@ else ifeq ($(config),release_x64)
 TARGETDIR = bin/Release
 TARGET = $(TARGETDIR)/wintalker
 OBJDIR = obj/Release
-DEFINES += -DPOWERPC_NATIVE_MT3=1 -D_LINUX -DNDEBUG
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -std=c99 -Wall -Wno-unused-function
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O3 -Wall -Wno-unused-function
+DEFINES += -DRELEASE=1
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -Wall -Wno-unused-function
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -Wall -Wno-unused-function
 ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s
 
 endif
@@ -81,6 +81,7 @@ GENERATED += $(OBJDIR)/FrontEnd.o
 GENERATED += $(OBJDIR)/Linux.o
 GENERATED += $(OBJDIR)/Morph.o
 GENERATED += $(OBJDIR)/Say.o
+GENERATED += $(OBJDIR)/Singing.o
 GENERATED += $(OBJDIR)/Sounds.o
 GENERATED += $(OBJDIR)/english_lex.o
 GENERATED += $(OBJDIR)/formantSynth.o
@@ -94,6 +95,7 @@ OBJECTS += $(OBJDIR)/FrontEnd.o
 OBJECTS += $(OBJDIR)/Linux.o
 OBJECTS += $(OBJDIR)/Morph.o
 OBJECTS += $(OBJDIR)/Say.o
+OBJECTS += $(OBJDIR)/Singing.o
 OBJECTS += $(OBJDIR)/Sounds.o
 OBJECTS += $(OBJDIR)/english_lex.o
 OBJECTS += $(OBJDIR)/formantSynth.o
@@ -186,6 +188,9 @@ $(OBJDIR)/Morph.o: src/Morph.c
 	@echo "$(notdir $<)"
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Say.o: src/Say.c
+	@echo "$(notdir $<)"
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/Singing.o: src/Singing.c
 	@echo "$(notdir $<)"
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/Sounds.o: src/Sounds.c

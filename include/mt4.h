@@ -156,9 +156,6 @@
 
 #define kCQsize 32					/* Command queue size  MUST BE A POWER OF 2!!!	*/
 #define	kMaxMarkers 32
-#define	kMaxNotes (kMaxMarkers * 2)
-
-
 /* Flow Control  Opcodes	*/
 #define BE_EOF				((BECommand) 0x8000)	/* End of commands	*/
 #define BE_ECmd				((BECommand) 0x8004)	/* Start of embedded command	*/
@@ -190,6 +187,7 @@
 #define EC_note			((unsigned long) 'note')		/* sing the note	*/
 #define EC_tempo		((unsigned long) 'tmpo')		/* sing the note	*/
 #define EC_marker		((unsigned long) 'mark')		/* sing the note	*/
+#define EC_sing			((unsigned long) 'sing')		/* DECtalk singing [ph<dur,note>] */
 
 typedef unsigned short BECommand, *BECommandPtr, **BECommandHandle;	/* command to the Back-End	*/
 
@@ -385,6 +383,7 @@ typedef short phons;
 
 #define kSilenceDuration	0x01000000
 #define kSampleMarker		0x02000000
+#define kSingingDuration	0x40000000
 
 
 #define kCompoundNoun 		0x8000
@@ -1308,6 +1307,9 @@ struct voiceVar
 	short			starting_New_Phon;
 	short			ctrlCount;
 	short			singing;
+	short			pendingSingPhoneme;
+	unsigned int	pendingSingDuration;
+	unsigned int	pendingSingNote;
 	short			scanIndex;
 	short			Note_Times[16];		/* note durations	*/
 
@@ -1412,14 +1414,6 @@ struct voiceVar
 	
 	short				lastRate;
 
-	short				notesBuf[kMaxNotes];
-	short				singScript;
-	short				numOfNotes;
-	short				songIndex;
-	short				songIndex_Save1;
-	short				songIndex_Save2;
-	short				lastSongIndex;
-	
 	long				rampSteps[kMaxRamps];
 	short				curRamp;
 	short				newSentence;

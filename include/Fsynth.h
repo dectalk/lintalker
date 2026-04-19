@@ -188,7 +188,6 @@ struct voiceData
 	int32_t	free7;
 	int32_t	free8;
 	
-	short	notes[40];
 };
 #pragma pack (pop)
 

@@ -4146,9 +4146,6 @@ const struct voiceData	Fred_Voice =
 		0,				// free7;
 		0,				// free8;
 
-			//{
-			0,				// the notes
-			//},
 	};
 
 
@@ -4237,9 +4234,6 @@ const struct voiceData	Kathy_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 
@@ -4329,9 +4323,6 @@ const struct voiceData	Princess_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	Junior_Voice =
@@ -4417,9 +4408,6 @@ const struct voiceData	Junior_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	Ralph_Voice =
@@ -4505,9 +4493,6 @@ const struct voiceData	Ralph_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	Whisper_Voice =
@@ -4593,9 +4578,6 @@ const struct voiceData	Whisper_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	Zarvox_Voice =
@@ -4681,9 +4663,6 @@ const struct voiceData	Zarvox_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 
@@ -4771,9 +4750,6 @@ const struct voiceData	Trinoids_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	Bubbles_Voice =
@@ -4859,9 +4835,6 @@ const struct voiceData	Bubbles_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 
@@ -4948,9 +4921,6 @@ const struct voiceData	Boing_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	Bells_Voice =
@@ -5036,9 +5006,6 @@ const struct voiceData	Bells_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	Hysterical_Voice =
@@ -5124,9 +5091,6 @@ const struct voiceData	Hysterical_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	Deranged_Voice =
@@ -5212,9 +5176,6 @@ const struct voiceData	Deranged_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-			//{
-			0,				// the notes
-			//},
 	};
 
 const struct voiceData	GoodNews_Voice =
@@ -5300,13 +5261,6 @@ const struct voiceData	GoodNews_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-		22,
-			//{
-			0x0700, 0x03FF, 0x0300, 0x0502, 0x07FD, 0x07FB, 
-			0x07F9, 0x03F8, 0x03F9, 0x05FB, 0x07F6, 
-			0x07F8, 0x03FA, 0x05FB, 0x03FD, 0x0702, 0x07FB, 
-			0x0700, 0x0300, 0x05FF, 0x03FD, 0x07FB, 
-			//},
 	};
 
 const struct voiceData	BadNews_Voice =
@@ -5392,13 +5346,6 @@ const struct voiceData	BadNews_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-		22,
-			//{
-			0x0500, 0x0400, 0x0200, 0x0500, 
-			0x0403, 0x0202, 0x0402, 0x0200, 0x0400, 0x02FF, 0x0700, 
-			0x0503, 0x0403, 0x0203, 0x0503, 
-			0x0407, 0x0205, 0x0405, 0x0203, 0x0403, 0x0202, 0x0703, 
-			//},
 	};
 
 const struct voiceData	PipeOrgan_Voice =
@@ -5484,20 +5431,6 @@ const struct voiceData	PipeOrgan_Voice =
 		0,				// free7;
 		0,				// free8;
 	
-		37,
-			//{
-			0x03FB, 0x0500, 
-			0x0300, 0x0300, 0x03FF, 0x03FD, 
-			0x05FF, 0x0300, 0x0502,
-			0x03FB, 0x0500, 
-			0x0300, 0x0300, 0x03FF, 0x03FD, 
-			0x05FF, 0x0300, 0x0502, 
-			0x03FB, 0x0500, 
-			0x0303, 0x0507, 0x0305, 
-			0x0503, 0x0307, 0x050A, 0x0308, 
-			0x0507, 0x030A, 0x050E, 0x030C, 
-			0x030B, 0x0308, 0x0307, 0x0305, 0x0303, 0x0302,
-			//},
 	};
 
 const struct voiceData	Cellos_Voice =
@@ -5583,17 +5516,6 @@ const struct voiceData	Cellos_Voice =
 		0,				// free7;
 		0,				// free8;
 
-		26,
-			//{
-			0x0300, 0x0302, 0x0303, 0x0305,
-			0x0307, 0x0303, 0x0507,
-			0x0306, 0x0302, 0x0506,
-			0x0305, 0x0301, 0x0500,
-			0x0300, 0x0302, 0x0303, 0x0305,
-			0x0307, 0x0303, 0x0307, 0x030C,
-			0x030A, 0x0307, 0x0303, 0x0307,
-			0x070A,
-			//},
 	};
 
 

@@ -31,6 +31,9 @@
 	#include "MT4.h"
 #endif
 
+#include "Singing.h"
+#include <ctype.h>
+
 #ifdef		DICT_TIMER
 	#include <Timer.h>
 	extern UnsignedWide		micro64;
@@ -921,6 +924,12 @@ SCAN_EMBEDDED_COMMANDS:										/* we will jump here from below if command deli
 
 		if (tok->tokType == kNullTok)						/* means that ProcessPendingCommands did	*/
 			{												/* not generate any commands for Back-End	*/
+			if ((vv->Ch == '[' && !vv->AtCmdBegin) || vv->pendingSingPhoneme != 0)
+				{
+				ParseSinging(vv, tok);
+				goto NOT_SINGLE;
+				}
+
 			if (tok->latchedMode & kRawPhonemes)			/* raw phoneme input mode	*/
 				CollectPhonemeToken(vv, tok);
 

@@ -3,6 +3,7 @@
 	#include "Versions.h"
 #endif
 
+#include <stdio.h>
 
 #ifndef __SPEECHSAY__
 	#include "MT4.h"
@@ -221,48 +222,34 @@ short	LogToLog (voiceVarPtr vv, short logVal)
 void DoNote (voiceVarPtr vv)
 {
 	short		note;
-	
+
 	if ( ((note = vv->user_Note_Buf2[vv->cur_PhonBuf_Index_CF]) != 0) &&		/* if pitch is entered...	*/
 		 !(vv->phon_Ctrl_Buf_2[vv->cur_PhonBuf_Index_CF] & kSilenceDuration) )	/* ...and it's NOT silence embedded cmd */
 		{
-		note = (note & 0xFF) << 8;						/* 00XX -> XX00	*/
-		if (note != 0x7F00)
+		if (vv->phon_Ctrl_Buf_2[vv->cur_PhonBuf_Index_CF] & kSingingDuration)
 			{
-			vv->VP_baselinePitch = vv->voiceNaturalPitch + ((note* 0x1555) >> 16);
-			if (vv->VP_baselinePitch < 0)
-				vv->VP_baselinePitch = 0;
-			}
-		}
-}
-
-
-
-
-void DoNoteScript (voiceVarPtr vv)
-{
-	short		note;
-	long		level;
-	
-	if ( ((e_GetPhonCtrl (vv, vv->cur_PhonBuf_Index_CF)) & kSyllable_Start ) &&		/* if pitch is entered...	*/
-		 !(vv->phon_Ctrl_Buf_2[vv->cur_PhonBuf_Index_CF] & kSilenceDuration) )	/* ...and it's NOT silence embedded cmd */
-		{
-		note = (vv->notesBuf[vv->songIndex++] & 0xFF) << 8;						/* 00XX -> XX00	*/
-		if (vv->songIndex >= vv->numOfNotes)
-			vv->songIndex = 0;
-			
-		if (note != 0x7F00)
-			{
-			vv->last_baseline = vv->VP_baselinePitch;
-			vv->VP_baselinePitch = vv->voiceNaturalPitch + ((note* 0x1555) >> 16);
-			if (vv->VP_baselinePitch < 0)
-				vv->VP_baselinePitch = 0;
-			
-			level = (vv->VP_baselinePitch - vv->last_baseline) << 16;
-			vv->portamentoStep = level / vv->portamento;
+			/* EC_sing: set new pitch target and let Interpolate_Pitch converge
+			 * using a first-order IIR (DECtalk-style: f0 += (target-f0) >> 2).
+			 * portamentoStep = 0 signals IIR mode to Interpolate_Pitch.        */
+			vv->VP_baselinePitch = note;
+			vv->portamentoStep = 0;
 			vv->newPortaTarget = true;
 			}
+		else
+			{
+			/* EC_note: note low byte is semitone offset above voiceNaturalPitch	*/
+			note = (note & 0xFF) << 8;					/* 00XX -> XX00	*/
+			if (note != 0x7F00)
+				{
+				vv->VP_baselinePitch = vv->voiceNaturalPitch + ((note * 0x1555) >> 16);
+				if (vv->VP_baselinePitch < 0)
+					vv->VP_baselinePitch = 0;
+				}
+			}
 		}
 }
+
+
 
 
 
@@ -770,9 +757,7 @@ void	StartNewPhon (voiceVarPtr vv)
 		vv->time_IntoPhon_Targ_Save2 = vv->time_IntoPhon_Targ_Save1;
 		vv->cur_PitchBuf_Time_Save2 = vv->cur_PitchBuf_Time_Save1;
 		vv->cmdBufCount_Save2 = vv->cmdBufCount_Save1;
-		vv->songIndex_Save2 = vv->songIndex_Save1;
-
-		vv->next_PitchBuf_Time_Save1 = vv->next_PitchBuf_Time;	
+		vv->next_PitchBuf_Time_Save1 = vv->next_PitchBuf_Time;
 		vv->phon_Index_Targ_Save1 = vv->phon_Index_Targ;
 		vv->phon_Index_CP_Save1 = vv->phon_Index_CP;
 		vv->pitchBuf_Out_Index_Save1 = vv->pitchBuf_Out_Index;
@@ -790,7 +775,6 @@ void	StartNewPhon (voiceVarPtr vv)
 		vv->stress_Target_Save1 = vv->stress_Target;
 		vv->punct_Offset_Save1 = vv->punct_Offset;
 		vv->cmdBufCount_Save1 = vv->cmdBufCount;
-		vv->songIndex_Save1 = vv->songIndex;
 		vv->VP_baselinePitch_Save1 = vv->VP_baselinePitch;
 		}
 		
@@ -807,10 +791,6 @@ void	StartNewPhon (voiceVarPtr vv)
 			}
 		}
 		
-	else if (vv->singScript)
-		{
-		DoNoteScript (vv);
-		}
 	else
 		DoNote (vv);
 	
@@ -1251,6 +1231,20 @@ void	Interpolate_Pitch (voiceVarPtr vv)
 					vv->newPortaTarget = false;
 					}
 				}
+			else if (vv->singing)
+				{
+				/* IIR convergence for EC_sing: f0 += (target - f0) >> 2        */
+				/* Matches DECtalk set_user_target. Converges within ~1 unit in  */
+				/* ~16 frames for large intervals; near-instant for small ones.  */
+				long target = (long)vv->VP_baselinePitch << 16;
+				long diff   = target - vv->portamentoAccum;
+				vv->portamentoAccum += diff >> 2;
+				if (diff > -0x10000L && diff < 0x10000L)
+					{
+					vv->portamentoAccum = target;
+					vv->newPortaTarget  = false;
+					}
+				}
 			else
 				{
 				vv->portamentoAccum = vv->VP_baselinePitch << 16;
@@ -1386,6 +1380,11 @@ void	Mod_Duration (voiceVarPtr vv)
 	short	dur_Hold;
 	long	obstrFlags, num_1;
 	short	total_Dur, vowel_Index, note_Dur, firstPass;
+	
+	total_Dur = 0;
+	vowel_Index = 0;
+	note_Dur = 0;
+	firstPass = true;
 	short	next_NoteDur, temp, dur_Adjust;
 	short	tempS;
 
@@ -1396,7 +1395,6 @@ void	Mod_Duration (voiceVarPtr vv)
 	firstPass = true;
 	total_Dur = 0;
 	vv->dur_Buf[0] = 1;			/* initial SIL = 5ms	*/
-
 	for (i = 1; i < vv->phonBuf_2_In_Index; i++)
 		{
 		/*------------------*/
@@ -1916,6 +1914,16 @@ void	Mod_Duration (voiceVarPtr vv)
 				}
 			}
 
+		if (cur_PhonCtrl & kSingingDuration)
+		{
+			dur_Hold = vv->user_Dur_Buf2[i];
+			dur_Hold /= kFrameTime;
+			total_Dur = 0;
+			if (cur_VowelFlag)
+				vowel_Index = i;
+			goto Duration_Done;
+		}
+
 		dur_Hold = ((percent_Duration * (maxDur - minDur)) >> 7) + minDur;		/* [scale  x (max-min)] + min	*/
 		
 		if ( (vv->speech_Rate != kNormal_Speech_Rate) && (dur_Hold != 0) )
@@ -1930,12 +1938,12 @@ Set_The_Dur:
 		dur_Hold = (dur_Hold * vv->user_Dur_Buf2[i]) >> kDurStepRes;
 		dur_Hold /= kFrameTime;
 		
-
+Duration_Done:
 		if ( (cur_Phon != _SIL_) && (dur_Hold < 8 / kFrameTime) )
 			dur_Hold = 8 / kFrameTime;
 
 		vv->dur_Buf[i] = dur_Hold;
-		
+
 		if (vv->sync_On_Marker)
 			{
 
@@ -1975,45 +1983,12 @@ Set_The_Dur:
 			total_Dur += dur_Hold;
 			}
 
-		else if (vv->singScript)
-			{
-			if ( (cur_PhonFlags & kVowelF) || (cur_PhonCtrl & kTerm_Bound) )
-				{
-				if (cur_PhonCtrl & kTerm_Bound)
-					{
-					if (note_Dur < vv->Note_Times[5])
-						note_Dur = vv->Note_Times[5];			/* end on half note	*/
-					}
-				else
-					next_NoteDur = (vv->notesBuf[vv->songIndex++] & kNoteDur) >> kNoteDurShift;
-				if (vv->songIndex >= vv->numOfNotes)
-					vv->songIndex = 0;
-					
-				if (!firstPass)
-					{
-					dur_Adjust = note_Dur - total_Dur;
-					vv->dur_Buf[vowel_Index] += dur_Adjust;
-					if (vv->dur_Buf[vowel_Index] < 4)
-						vv->dur_Buf[vowel_Index] = 4;			/* @@@@	*/
-					else if (vv->dur_Buf[vowel_Index] > 100)			/* @@@@	*/
-						vv->phon_Ctrl_Buf_2[vowel_Index] |= kLowVibrato;	/* less vibrato depth on sustained vowel	*/
-					}
-				firstPass = false;
-				vowel_Index = i;
-				note_Dur = vv->Note_Times[next_NoteDur];
-				total_Dur = 0;
-				}
-			total_Dur += dur_Hold;
-			if (cur_VowelFlag)
-				vowel_Index = i;
-			}
-
-		else if (vv->singing)
+		else if (vv->singing && !(cur_PhonCtrl & kSingingDuration))
 			{
 			next_NoteDur = (vv->user_Note_Buf2[i] & kNoteDur) >> kNoteDurShift;
 			if ( (next_NoteDur != 0) || (cur_PhonCtrl & kTerm_Bound) )
 				{
-				if (!firstPass)
+				if (!firstPass && !(vv->phon_Ctrl_Buf_2[vowel_Index] & kSingingDuration))
 					{
 					dur_Adjust = note_Dur - total_Dur;
 					vv->dur_Buf[vowel_Index] += dur_Adjust;
@@ -3682,6 +3657,13 @@ void	Parse_Embedded_Command ( voiceVarPtr vv, BECommandPtr bCmdPtr)
 			vv->singing = true;
 			break;
 
+		case EC_sing:			/* issue SING command	*/
+			vv->user_Note_Buf1[vv->phonBuf_1_In_Index] = (embedData >> 16);		/* note pitch	*/
+			vv->user_Dur_Buf1[vv->phonBuf_1_In_Index] = (embedData & 0xFFFF);		/* note duration	*/
+			vv->phon_Ctrl_Buf_1[vv->phonBuf_1_In_Index] |= kSingingDuration;
+			vv->singing = true;
+			break;
+
 		case EC_tempo:			/* issue TEMPO command	*/
 			//vv->user_Tempo_Buf1[vv->phonBuf_1_In_Index] = embedData >> 16;						/* integer part for TEMPO	*/
 			break;
@@ -4164,15 +4146,6 @@ short	Collect_FE_Tokens ( voiceVarPtr vv )
 
 void	ParseSentence (voiceVarPtr vv)
 {
-	//vv->lastSongIndex = vv->songIndex;			/* remember wher we left off on the song	*/
-	vv->lastSongIndex =0;			/* remember wher we left off on the song	*/
-	vv->songIndex = vv->lastSongIndex;
-	vv->songIndex_Save1 = 0;
-	vv->songIndex_Save2 = 0;
-	
-	vv->lastSongIndex = 0;
-	vv->songIndex = 0;					/* start song at begining	*/	
-
 	vv->cmdBufCount = 0;						/* start READING commands from top of queue	*/
 	vv->cmdBufCount_Save1 = 0;
 	vv->newSentence = true;
@@ -4185,7 +4158,6 @@ void	ParseSentence (voiceVarPtr vv)
 	Fill_Pitch_Buf (vv);
 	StartNew_PitchClause (vv);
 
-	vv->songIndex = vv->lastSongIndex;
 	vv->markerIndex = 0;
 	vv->frameMarker = kNoMarker;
 }
@@ -4359,19 +4331,12 @@ void	Init_Pitch_Params (voiceVarPtr vv)
 void	ResetVoice (voiceVarPtr vv)
 {
 	(*(vv->funcList->synth_ResetVoice_FUNC)) (vv);
-	
 
-	if (vv->numOfNotes > 1)
-		{
-		vv->singScript = true;
-		vv->singing = true;
-		e_SetTempo (vv, vv->tempo);
-		}
-	else
-		{
-		vv->singScript = false;
-		vv->singing = false;
-		}
+	vv->pendingSingPhoneme = 0;
+	vv->pendingSingDuration = 0;
+	vv->pendingSingNote = 0;
+
+	vv->singing = false;
 
 	vv->user_Volume = 256;				/* Volume = 100%	*/
 	(*(vv->funcList->synth_SetVolume_FUNC)) (vv, vv->user_Volume);

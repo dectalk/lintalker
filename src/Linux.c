@@ -649,15 +649,6 @@ static int parse_voice_description (const uint8_t *data, size_t len, voiceData *
 	vd->free7        = RD32(340);
 	vd->free8        = RD32(344);
 
-	/* notes[0] = count, notes[1..N] = note values (each a BE int16) */
-	{
-		short nc = RD16(348);
-		if (nc < 0 || nc >= 40) nc = 0;
-		vd->notes[0] = nc;
-		for (i = 0; i < nc && i < 39; i++)
-			vd->notes[i + 1] = RD16(350 + i * 2);
-	}
-
 #undef RD16
 #undef RD32
 

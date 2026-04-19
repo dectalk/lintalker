@@ -339,7 +339,6 @@ void	e_PauseSpeechAt (voiceVarPtr vv, unsigned long whereToPause)
 	vv->time_IntoPhon_Targ_Save1	= vv->time_IntoPhon_Targ_Save2;
 	vv->cur_PitchBuf_Time_Save1		= vv->cur_PitchBuf_Time_Save2;
 	vv->cmdBufCount_Save1 			= vv->cmdBufCount_Save2;
-	vv->songIndex_Save1 			= vv->songIndex_Save2;
 	vv->VP_baselinePitch_Save1 		= vv->VP_baselinePitch_Save2;
 }
 
@@ -403,7 +402,6 @@ void	e_ContinueSpeech( voiceVarPtr vv )
 		vv->time_IntoPhon_Targ	= vv->time_IntoPhon_Targ_Save2;
 		vv->cur_PitchBuf_Time	= vv->cur_PitchBuf_Time_Save2;
 		vv->cmdBufCount 		= vv->cmdBufCount_Save2;
-		vv->songIndex 			= vv->songIndex_Save2;
 		vv->VP_baselinePitch 	= vv->VP_baselinePitch_Save2;
 
 		Start_Talk(vv);

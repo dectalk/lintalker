@@ -495,13 +495,13 @@ void	Insert_Burst (voiceVarPtr vv)
 			zz->controlBlockArray[kAF].onset_VAL = 48;		/* @@@ was 54, less aspiration before front	*/
 		else
 			/*--------------------------*/
-			/* cur ­ FRONT				*/
+			/* cur ï¿½ FRONT				*/
 			/*--------------------------*/
 			zz->controlBlockArray[kAF].onset_VAL = 54;		/* @@@@ was 61	*/
 		
 		if ( !(vv->cur_PhonCtrl_CF & kVowelF) )
 			/*--------------------------*/
-			/* cur ­ VOWEL				*/
+			/* cur ï¿½ VOWEL				*/
 			/*--------------------------*/
 			{
 			burstReleaseDur = 25 / kFrameTime;				/* shorter release and...	*/
@@ -1088,7 +1088,7 @@ void 	Head_Rules (voiceVarPtr vv)
 			{
 			if ( !(vv->cur_PhonFlags_CF & kLiqGlideF) )
 				/*----------------------*/
-				/* cur ­ LiqGlide		*/
+				/* cur ï¿½ LiqGlide		*/
 				/*----------------------*/
 				{
 				zz->trans_TIME = 45 / kFrameTime;
@@ -1118,7 +1118,7 @@ void 	Head_Rules (voiceVarPtr vv)
 					}
 				else
 					/*--------------------------*/
-					/* prev ­ LiqGlide			*/
+					/* prev ï¿½ LiqGlide			*/
 					/*--------------------------*/
 					{
 					if (vv->cur_Phon_CF == _h_)
@@ -1137,7 +1137,7 @@ void 	Head_Rules (voiceVarPtr vv)
 				{
 				if ( !(vv->prev_PhonFlags_CF & kLiqGlideF) )
 					/*--------------------------*/
-					/* prev ­ LiqGlide			*/
+					/* prev ï¿½ LiqGlide			*/
 					/*--------------------------*/
 					{
 					zz->trans_LEVEL = (cb->prevP_END_Targ + zz->trans_LEVEL) >> 1;
@@ -1286,7 +1286,7 @@ void 	Head_Rules (voiceVarPtr vv)
 			{
 			if ( !(vv->prev_PhonFlags_CF & kVoicedF) && (zz->cur_ControlBlk_Index == kBW1) )
 				/*--------------------------*/
-				/* prev ­ Voiced   BW1		*/
+				/* prev ï¿½ Voiced   BW1		*/
 				/*--------------------------*/
 				{
 				zz->trans_TIME = 50 / kFrameTime;
@@ -1298,7 +1298,7 @@ void 	Head_Rules (voiceVarPtr vv)
 			
 		else
 			/*--------------------------*/
-			/* cur ­ Voiced				*/
+			/* cur ï¿½ Voiced				*/
 			/*--------------------------*/
 			zz->trans_TIME = 20 / kFrameTime;
 		
@@ -1520,7 +1520,7 @@ void	Tail_Rules (voiceVarPtr vv)
 			zz->trans_TIME = 45 / kFrameTime;
 			if ( !(vv->cur_PhonFlags_CF & kLiqGlideF) )
 				/*--------------------------*/
-				/* cur ­ LiqGlide			*/
+				/* cur ï¿½ LiqGlide			*/
 				/*--------------------------*/
 				{
 				if (vv->next_PhonFlags_CF & kLiqGlideF)
@@ -1544,7 +1544,7 @@ void	Tail_Rules (voiceVarPtr vv)
 					}
 				else
 					/*--------------------------*/
-					/* next ­ LiqGlide			*/
+					/* next ï¿½ LiqGlide			*/
 					/*--------------------------*/
 					{
 					if (vv->next_Phon_CF == _h_)
@@ -1563,7 +1563,7 @@ void	Tail_Rules (voiceVarPtr vv)
 				{
 				if ( !(vv->next_PhonFlags_CF & kLiqGlideF) )
 					/*--------------------------*/
-					/* next ­ LiqGlide			*/
+					/* next ï¿½ LiqGlide			*/
 					/*--------------------------*/
 					{
 					zz->trans_LEVEL = (cb->curP_END_Targ + zz->trans_LEVEL) >> 1;
@@ -1702,7 +1702,7 @@ void	Tail_Rules (voiceVarPtr vv)
 			
 			if ( !(vv->next_PhonFlags_CF & kVoicedF) && (zz->cur_ControlBlk_Index == kBW1) )
 				/*--------------------------*/
-				/* next ­ Voiced   BW1		*/
+				/* next ï¿½ Voiced   BW1		*/
 				/*--------------------------*/
 				{
 				zz->trans_TIME = 50 / kFrameTime;
@@ -1711,7 +1711,7 @@ void	Tail_Rules (voiceVarPtr vv)
 			}
 		else
 			/*--------------------------*/
-			/* cur ­ Voiced				*/
+			/* cur ï¿½ Voiced				*/
 			/*--------------------------*/
 			zz->trans_TIME = 20 / kFrameTime;
 		
@@ -2506,29 +2506,18 @@ void	CopyVoice (voiceDataPtr src, voiceDataPtr dst)
 	vd_target = *(voiceDataPtr*)info;	
 	CopyVoice (&zz->vd, vd_target);
 	
-	vd_target->notes[0] = vv->numOfNotes;
-	for (i = 0; i < vv->numOfNotes; i++)
-		vd_target->notes[i+1] = vv->notesBuf[i];
 }
 
 
 	void	fSynth_SetVoiceParams (voiceVarPtr vv, void *info )
 {
 	voiceDataPtr	vd_target;
-	short			*theNotes;
-	short			i;
 	formantVarPtr 	zz;
 
 	zz = (formantVarPtr)vv->synthVars;
 	vd_target = *(voiceDataPtr*)info;
 	CopyVoice (vd_target, &zz->vd);
 
-	theNotes = (short*) &vd_target->notes;
-	vv->numOfNotes = *theNotes++;
-	if (vv->numOfNotes >= kMaxNotes)
-		vv->numOfNotes = 1;						/* Too many notes, don't sing	*/
-	for (i = 0; i < vv->numOfNotes; i++)
-		vv->notesBuf[i] = *theNotes++;
 }
 
 

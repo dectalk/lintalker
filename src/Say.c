@@ -715,7 +715,8 @@ void	SayFrame (voiceVarPtr vv)
 					vPulse1 = zz->voiceWaveform1[cycleIndex];
 					vPulse = mDiv((vPulse + vPulse1), 2, 1);
 					}
-				sourceC = mMul2(vPulse, zz->curAmp, kPrecision) + sourceC;
+				if (zz->glotType != kUseSnd)
+					sourceC = mMul2(vPulse, zz->curAmp, kPrecision) + sourceC;
 				}
 			else
 				{
@@ -1244,10 +1245,6 @@ void InvDFT (formantVarPtr zz, voiceDataPtr vd)
 // portamento
 // tempo
 
-// numOfNotes
-// notesBuf[i]
-
-
 void	InitVoice (voiceVarPtr vv, voiceDataPtr vd)
 {
 	short		temp_Pitch;
@@ -1619,13 +1616,6 @@ short	synth_NewVoice (voiceVarPtr vv, void *voice, unsigned char *sample)
 		}
 
 	zz->vd.customForm = vDat->customForm;
-	
-	theNotes = (short*)&vDat->notes;
-	vv->numOfNotes = *theNotes++;
-	if (vv->numOfNotes >= kMaxNotes)
-		vv->numOfNotes = 1;						/* Too many notes, don't sing	*/
-	for (i = 0; i < vv->numOfNotes; i++)
-		vv->notesBuf[i] = *theNotes++;
 	
 	zz->vd.nasalAmt = vDat->nasalAmt;
 	zz->vd.vibratoDepth1 = vDat->vibratoDepth1;

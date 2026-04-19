@@ -5,17 +5,13 @@
 workspace "WinTalker"
     configurations { "Debug", "Release" }
     platforms      { "x64" }
-    location       "./"
+    location       "."
 
 project "wintalker"
-    kind        "ConsoleApp"
-    language    "C"
-    cdialect    "C99"
-    targetname  "wintalker"
-
-    -- Output directories
-    objdir      "obj/%{cfg.buildcfg}"
-    targetdir   "bin/%{cfg.buildcfg}"
+    kind      "ConsoleApp"
+    language  "C"
+    targetdir "bin/%{cfg.buildcfg}"
+    objdir    "obj/%{cfg.buildcfg}"
 
     -- Include path
     includedirs { "include" }
@@ -32,6 +28,7 @@ project "wintalker"
         "src/Morph.c",
         "src/EngToP.c",
         "src/EmbeddedCmd.c",
+        "src/Singing.c",
         "src/Data.c",
         "src/Sounds.c",
         "src/english_lex.c",
@@ -43,21 +40,16 @@ project "wintalker"
         "src/Wavinout.c",
     }
 
-    -- Preprocessor defines
-    defines {
-        "POWERPC_NATIVE_MT3=1",
-        "_LINUX",
-    }
+    -- Linux build settings
+    filter "system:linux"
+        architecture "x64"
+        staticruntime "Off"
 
-    -- Compiler warnings / options
-    warnings    "Default"
-
-    -- Release configuration
+    -- Configurations
     filter "configurations:Release"
-        defines  { "NDEBUG" }
-        optimize "Speed"
+        defines  { "RELEASE=1" }
+        optimize "On"
 
-    -- Debug configuration
     filter "configurations:Debug"
         defines  { "DEBUG=1" }
         optimize "Off"
