@@ -327,7 +327,7 @@ typedef short phons;
 
 #define kFrameTime 5					/* ms per frame	*/
 #define kSampFrameLen 112				/* 5.032 ms	*/
-#define kSampBufGroup (1000/kFrameTime)	/* 100 ms	*/
+#define kSampBufGroup (100/kFrameTime)	/* 20 ms @ 5ms frame */
 
 #define kFrameTime_us 5033			/* us per frame (13A8.AE04)			*/
 #define kGroupTime 100653			/* kFrameTime_us x kSampBufGroup	*/
@@ -1442,21 +1442,6 @@ struct voiceVar
 
 	void			*synthVars;
 	void			*hWnd;				/* window handle (unused on Linux) */
-
-	/* ---------------------------------------------------------------- */
-	/* Lipsync callback hook                                             */
-	/*                                                                   */
-	/* When non-NULL, called once per synthesized audio frame (every    */
-	/* kFrameTime ms) immediately after synth_SpeakPhon.  All per-frame */
-	/* phoneme state is current at call time:                            */
-	/*   vv->cur_Phon_CF        — active phoneme opcode                 */
-	/*   vv->prev_Phon_CF       — previous phoneme (coarticulation)     */
-	/*   vv->next_Phon_CF       — next phoneme    (anticipation)        */
-	/*   vv->dur_Done_in_Phon_CF — frames elapsed in this phoneme       */
-	/*   vv->cur_Phon_Dur_CF    — total duration of this phoneme        */
-	/* ---------------------------------------------------------------- */
-	void	(*lipsync_cb)(voiceVarPtr vv, void *userdata);
-	void	*lipsync_userdata;
 };
 
 

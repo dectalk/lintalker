@@ -109,8 +109,6 @@ void _InstallLipsync (shellVarPtr svv)
 {
     if (!svv || !svv->ChannelGlobals) return;
     g_lipsync.count = 0;   /* reset without freeing — reuse buffer */
-    svv->ChannelGlobals->lipsync_cb       = lipsync_frame_cb;
-    svv->ChannelGlobals->lipsync_userdata = &g_lipsync;
 }
 
 /* ------------------------------------------------------------------ */
@@ -132,11 +130,6 @@ const float *_GetLipsyncFrames (int *out_count)
 
 void _ClearLipsync (shellVarPtr svv)
 {
-    if (svv && svv->ChannelGlobals)
-        {
-        svv->ChannelGlobals->lipsync_cb       = NULL;
-        svv->ChannelGlobals->lipsync_userdata = NULL;
-        }
     free (g_lipsync.buf);
     g_lipsync.buf   = NULL;
     g_lipsync.count = 0;

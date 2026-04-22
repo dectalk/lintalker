@@ -834,6 +834,14 @@ static void AccumulateSamples (shellVarPtr svv, WAVEHDR *wh)
 	if (sampleCount <= 0)
 		return;
 
+	/* If a streaming callback is registered, use it instead of accumulating in RAM */
+	if (svv->stream_cb)
+		{
+		svv->stream_cb ((const int16_t *)wh->lpData, (int)sampleCount, svv->ChannelGlobals->cur_Phon_CF, svv->stream_userdata);
+		svv->outputLen += sampleCount;	/* track length for reporting */
+		return;
+		}
+
 	needed = svv->outputLen + sampleCount;
 	if (needed > svv->outputCapacity)
 		{

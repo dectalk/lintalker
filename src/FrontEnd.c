@@ -1758,7 +1758,7 @@ short SearchAllDicts ( voiceVarPtr vv, unsigned char *text, FETokenPtr tok, Dict
 		{
 		AppendTwoDigitPhonemes(vv, tok, '0', hundreds);			/* how many hundreds?	*/
 
-		(void) SearchAllDicts(vv, (unsigned char*)"\p100", tok, vv->Symbols, true); 	/* lookup digits in symbols dictionary	*/
+		(void) SearchAllDicts(vv, (unsigned char*)"\003100", tok, vv->Symbols, true); 	/* lookup digits in symbols dictionary	*/
 		(void) ConcatPhonStr(tok->phonHold, tok->phonStr);		/* append the phonemes to the token	*/
 		}
 
@@ -1805,7 +1805,7 @@ short SearchAllDicts ( voiceVarPtr vv, unsigned char *text, FETokenPtr tok, Dict
 				}
 			else
 				{
-				(void) SearchAllDicts(vv, (unsigned char*)"\p100", tok, vv->Symbols, true); 	/* lookup digits in symbols dictionary	*/
+				(void) SearchAllDicts(vv, (unsigned char*)"\003100", tok, vv->Symbols, true); 	/* lookup digits in symbols dictionary	*/
 				(void) ConcatPhonStr(tok->phonHold, tok->phonStr);				/* append the phonemes to the token	*/
 				}
 			break;
@@ -2107,7 +2107,7 @@ short SearchAllDicts ( voiceVarPtr vv, unsigned char *text, FETokenPtr tok, Dict
 				if (prev_Tok->addFlags & kAddDollar)
 					{
 					cur_Tok->tokStr[0] = 0;								/* erase prior string value	*/
-					(void) ConcatStr(cur_Tok->tokStr, (unsigned char*)"\pANDD");		/* stuff with the word "AND"	*/
+					(void) ConcatStr(cur_Tok->tokStr, (unsigned char*)"\004ANDD");		/* stuff with the word "AND"	*/
 					cur_Tok->tokType = kNumericTok;
 					cur_Tok->tokAttr = kLetter;
 					cur_Tok->addFlags |= kAddCent;
@@ -2115,7 +2115,7 @@ short SearchAllDicts ( voiceVarPtr vv, unsigned char *text, FETokenPtr tok, Dict
 				else
 					{
 					cur_Tok->tokStr[0] = 0;								/* erase prior string value	*/
-					(void) ConcatStr(cur_Tok->tokStr, (unsigned char*)"\pPOINT");		/* stuff with the word "POINT"	*/
+					(void) ConcatStr(cur_Tok->tokStr, (unsigned char*)"\005POINT");		/* stuff with the word "POINT"	*/
 					cur_Tok->tokType = kDecimalTok;
 					cur_Tok->tokAttr = kLetter;
 					}
@@ -2521,7 +2521,7 @@ void	LogError ( voiceVarPtr vv, OSErr err)	/* will update internal error info & 
 	if (!StuffText(buf, roomLeft, hexStr))
 		return false;
 
-	if (!StuffText(buf, roomLeft, (unsigned char*)"\p "))
+	if (!StuffText(buf, roomLeft, (unsigned char*)"\001 "))
 		{
 		return false;
 		}
@@ -2533,7 +2533,7 @@ void	LogError ( voiceVarPtr vv, OSErr err)	/* will update internal error info & 
 	unsigned char	hexStr[32];
 	short err = false;
 
-	if (!StuffText(buf, roomLeft, (unsigned char*)"\p<<cmnt "))
+	if (!StuffText(buf, roomLeft, (unsigned char*)"\007<<cmnt "))
 		return false;
 
 	NumToHex(num, hexStr);
@@ -2541,10 +2541,10 @@ void	LogError ( voiceVarPtr vv, OSErr err)	/* will update internal error info & 
 	if (!StuffText(buf, roomLeft, hexStr))
 		return false;
 
-	if (!StuffText(buf, roomLeft, (unsigned char*)"\p "))
+	if (!StuffText(buf, roomLeft, (unsigned char*)"\001 "))
 		return false;
 
-	if (!StuffText(buf, roomLeft, (unsigned char*)"\p>> "))
+	if (!StuffText(buf, roomLeft, (unsigned char*)"\003>> "))
 		return false;
 
 	return true;
@@ -2673,14 +2673,14 @@ void	LogError ( voiceVarPtr vv, OSErr err)	/* will update internal error info & 
 				{
 				if ((Fixed) embedData < 0)
 					{
-					if (!StuffText(&phonPtr, &roomLeft, (unsigned char*)"\p-"))
+					if (!StuffText(&phonPtr, &roomLeft, (unsigned char*)"\001-"))
 						err = bufTooSmall;
 
 					embedData = -embedData; 					/* convert back to positive	*/
 					}
 				else
 					{
-					if (!StuffText(&phonPtr, &roomLeft, (unsigned char*)"\p+"))
+					if (!StuffText(&phonPtr, &roomLeft, (unsigned char*)"\001+"))
 						err = bufTooSmall;
 					}
 				}
@@ -2694,7 +2694,7 @@ void	LogError ( voiceVarPtr vv, OSErr err)	/* will update internal error info & 
 			/*------------------------------*/
 			/* Output DELIMITER string		*/
 			/*------------------------------*/
-			if (!StuffText(&phonPtr, &roomLeft, (unsigned char*)"\p]] "))
+			if (!StuffText(&phonPtr, &roomLeft, (unsigned char*)"\003]] "))
 				err = bufTooSmall;
 			}
 		else
@@ -2907,6 +2907,14 @@ short e_StartParse ( voiceVarPtr vv, Ptr theStr, unsigned long byteLen, unsigned
 	error = NewParse ( vv, theStr, byteLen, controlFlags );
 	return (error);
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -4213,9 +4213,6 @@ void	e_Fill_Next_Frame (voiceVarPtr vv)
 		(*(vv->funcList->synth_SpeakPhon_FUNC)) (vv);
 		vv->starting_New_Phon = false;
 
-		if (vv->lipsync_cb)
-			vv->lipsync_cb (vv, vv->lipsync_userdata);
-
 		if (vv->dur_Done_in_Phon_CF >= vv->cur_Phon_Dur_CF)
 			{
 			vv->cur_PhonBuf_Index_CF++;

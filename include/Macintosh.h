@@ -3,6 +3,7 @@
 
 
 #include "linux_compat.h"
+#include "mt4.h"
 
 
 #define notSupported  -248
@@ -109,6 +110,10 @@ struct shellVar
 	short			*outputBuf;			/* heap-allocated sample buffer */
 	long			outputLen;			/* samples written so far */
 	long			outputCapacity;		/* allocated capacity in samples */
+
+	/* Bridge callback for embedded streaming and lipsync */
+	void			(*stream_cb)(const int16_t *samples, int count, int phoneme_id, void *userdata);
+	void			*stream_userdata;
 };
 typedef struct shellVar shellVar;
 typedef shellVar *shellVarPtr;
